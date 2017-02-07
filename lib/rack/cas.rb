@@ -12,6 +12,10 @@ class Rack::CAS
     RackCAS.config.update config
   end
 
+  def service_url
+    RaskCAS.config.service_url || cas_request.service_url
+  end
+
   def call(env)
     request = Rack::Request.new(env)
     cas_request = CASRequest.new(request)
@@ -26,11 +30,11 @@ class Rack::CAS
       rescue RackCAS::ServiceValidationResponse::TicketInvalidError, RackCAS::SAMLValidationResponse::TicketInvalidError
         log env, 'rack-cas: Invalid ticket. Redirecting to CAS login.'
 
-        return redirect_to server.login_url(cas_request.service_url).to_s
+        return redirect_to server.login_url(service_url).to_s
       end
 
       store_session request, user, cas_request.ticket, extra_attrs
-      return redirect_to cas_request.service_url
+      return redirect_to service_url
     end
 
     if cas_request.logout?
@@ -52,7 +56,7 @@ class Rack::CAS
     if response[0] == 401 && !ignore_intercept?(request) # access denied
       log env, 'rack-cas: Intercepting 401 access denied response. Redirecting to CAS login.'
 
-      redirect_to server.login_url(request.url).to_s
+      redirect_to server.login_url(service_url).to_s
     else
       response
     end
