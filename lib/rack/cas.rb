@@ -13,7 +13,7 @@ class Rack::CAS
   end
 
   def service_url
-    RaskCAS.config.service_url || cas_request.service_url
+    RackCAS.config.service_url || cas_request.service_url
   end
 
   def call(env)
